@@ -6,7 +6,8 @@ services:
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      DB_PASSWORD: postgres
+      R2DBC_URL: r2dbc:postgresql://db_host:5432/franquicias_db
     ports:
       - "5432:5432"
     volumes:
