@@ -19,7 +19,7 @@ class MyReactiveRepositoryAdapterTest {
     // TODO: change four you own tests
 
     @InjectMocks
-    MyReactiveRepositoryAdapter repositoryAdapter;
+    FranquiciaAdapter repositoryAdapter;
 
     @Mock
     MyReactiveRepository repository;
