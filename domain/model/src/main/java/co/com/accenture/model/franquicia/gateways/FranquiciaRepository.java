@@ -11,4 +11,5 @@ public interface FranquiciaRepository {
     Mono<Franquicia> findById(UUID id);
     Flux<Franquicia> findAll();
     Mono<Void> deleteById(UUID id);
+    Mono<Franquicia> updateName(UUID id, String name);
 }

@@ -26,4 +26,12 @@ public class FranquiciaAdapter extends ReactiveAdapterOperations<Franquicia, Fra
         return repository.deleteById(id);
     }
 
+    @Override
+    public Mono<Franquicia> updateName(UUID id, String name) {
+        return repository.updateNameById(id, name)
+                .filter(rowsUpdated -> rowsUpdated > 0)
+                .flatMap(rowsUpdated -> repository.findById(id))
+                .map(this::toEntity);
+    }
+
 }

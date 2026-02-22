@@ -3,6 +3,7 @@ package co.com.accenture.api.franquicia;
 import co.com.accenture.model.franquicia.Franquicia;
 import co.com.accenture.usecase.franquicia.FranquiciaUseCase;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -16,7 +17,7 @@ import java.util.UUID;
 public class FranquiciaHandler {
     private final FranquiciaUseCase useCase;
 
-    public Mono<ServerResponse> save(ServerRequest request) {
+    public Mono<ServerResponse> save(@NonNull ServerRequest request) {
         return request.bodyToMono(Franquicia.class)
                 .flatMap(useCase::save)
                 .flatMap(franquiciaCreada ->
@@ -25,7 +26,7 @@ public class FranquiciaHandler {
                 );
     }
 
-    public Mono<ServerResponse> findById(ServerRequest request) {
+    public Mono<ServerResponse> findById(@NonNull ServerRequest request) {
         UUID id = UUID.fromString(request.pathVariable("id"));
         return useCase.findById(id)
                 .flatMap(franquiciaEncontrada -> ServerResponse.ok().bodyValue(franquiciaEncontrada))
@@ -36,13 +37,13 @@ public class FranquiciaHandler {
         return ServerResponse.ok().body(useCase.findAll(), Franquicia.class);
     }
 
-    public Mono<ServerResponse> deleteById(ServerRequest request) {
+    public Mono<ServerResponse> deleteById(@NonNull ServerRequest request) {
         UUID id = UUID.fromString(request.pathVariable("id"));
         return useCase.deleteById(id)
                 .then(ServerResponse.noContent().build());
     }
 
-    public Mono<ServerResponse> updateName(ServerRequest request) {
+    public Mono<ServerResponse> updateName(@NonNull ServerRequest request) {
         UUID id = UUID.fromString(request.pathVariable("id"));
         return request.bodyToMono(Franquicia.class)
                 .flatMap(body ->

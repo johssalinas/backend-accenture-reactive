@@ -33,9 +33,7 @@ public class FranquiciaUseCase {
     }
 
     public Mono<Franquicia> updateName(UUID id, String newName) {
-        return repository.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Not found")))
-                .map(franquiciaExistente -> franquiciaExistente.toBuilder().name(newName).build())
-                .flatMap(repository::save);
+        return repository.updateName(id, newName)
+            .switchIfEmpty(Mono.error(new RuntimeException("Not found")));
     }
 }
