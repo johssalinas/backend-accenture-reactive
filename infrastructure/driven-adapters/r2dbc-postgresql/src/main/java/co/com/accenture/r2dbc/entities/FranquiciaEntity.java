@@ -8,6 +8,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,7 +17,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("franquicia")
 public class FranquiciaEntity {
     @Id
-    private String id;
+    private UUID id;
 
     private String name;
 

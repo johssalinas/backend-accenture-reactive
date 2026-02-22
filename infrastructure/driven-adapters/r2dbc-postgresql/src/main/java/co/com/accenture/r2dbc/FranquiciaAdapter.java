@@ -9,15 +9,20 @@ import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Repository
-public class FranquiciaAdapter extends ReactiveAdapterOperations<Franquicia, FranquiciaEntity, String, FranquiciaDataRepository> implements FranquiciaRepository {
+public class FranquiciaAdapter extends ReactiveAdapterOperations<Franquicia, FranquiciaEntity, UUID, FranquiciaDataRepository> implements FranquiciaRepository {
 
     public FranquiciaAdapter(FranquiciaDataRepository repository, ObjectMapper mapper) {
-        super(repository, mapper, d -> mapper.map(d, Franquicia.class));
+        super(repository, mapper, data -> Franquicia.builder()
+                .id(data.getId())
+                .name(data.getName())
+                .build());
     }
 
     @Override
-    public Mono<Void> deleteById(String id) {
+    public Mono<Void> deleteById(UUID id) {
         return repository.deleteById(id);
     }
 

@@ -16,7 +16,7 @@ class ConfigTest {
 
     @Autowired
     private WebTestClient webTestClient;
-
+    
     @Test
     void corsConfigurationShouldAllowOrigins() {
         webTestClient.get()
