@@ -20,18 +20,18 @@ public class FranquiciaUseCase {
     private final IdempotencyRepository idempotencyRepository;
 
     public Mono<Franquicia> save(String clientId, String idempotencyKey, Franquicia franquicia) {
-        return ReactiveValidationUtils.requireNonNull(franquicia, BusinessErrorMessage.INVALID_FRANQUICIA_REQUEST)
-                .flatMap(request -> ReactiveValidationUtils
-                        .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_FRANQUICIA_NAME)
-                        .map(validName -> request.toBuilder().name(validName).build()))
-                .flatMap(validRequest -> IdempotencyFlowHelper.execute(
-                        idempotencyRepository,
-                        clientId,
-                        idempotencyKey,
-                        validRequest,
-                        () -> Mono.just(validRequest.toBuilder().id(UUID.randomUUID()).build())
-                                .flatMap(repository::save),
-                        FranquiciaIdempotencyCodec.INSTANCE));
+        return IdempotencyFlowHelper.execute(
+                idempotencyRepository,
+                clientId,
+                idempotencyKey,
+                franquicia,
+                () -> ReactiveValidationUtils.requireNonNull(franquicia, BusinessErrorMessage.INVALID_FRANQUICIA_REQUEST)
+                        .flatMap(request -> ReactiveValidationUtils
+                                .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_FRANQUICIA_NAME)
+                                .map(validName -> request.toBuilder().name(validName).build()))
+                        .map(validRequest -> validRequest.toBuilder().id(UUID.randomUUID()).build())
+                        .flatMap(repository::save),
+                FranquiciaIdempotencyCodec.INSTANCE);
     }
 
     public Mono<Franquicia> findById(UUID id) {

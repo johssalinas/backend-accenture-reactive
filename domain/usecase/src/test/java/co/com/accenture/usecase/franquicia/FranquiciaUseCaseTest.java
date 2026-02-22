@@ -58,6 +58,8 @@ class FranquiciaUseCaseTest {
     @Test
     void saveShouldFailWhenNameIsBlank() {
         Franquicia request = Franquicia.builder().name("   ").build();
+                when(idempotencyRepository.tryAcquire(anyString(), anyString(), anyString())).thenReturn(Mono.just(true));
+                when(idempotencyRepository.release(anyString(), anyString())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.save("cliente-1", "idem-1", request))
                 .expectErrorSatisfies(error -> {
