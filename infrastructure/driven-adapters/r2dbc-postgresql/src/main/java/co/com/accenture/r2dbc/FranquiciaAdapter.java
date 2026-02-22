@@ -3,10 +3,12 @@ package co.com.accenture.r2dbc;
 import co.com.accenture.model.franquicia.Franquicia;
 import co.com.accenture.model.franquicia.gateways.FranquiciaRepository;
 import co.com.accenture.r2dbc.entities.FranquiciaEntity;
+import co.com.accenture.r2dbc.helper.DatabaseExceptionMapper;
 import co.com.accenture.r2dbc.helper.ReactiveAdapterOperations;
 import co.com.accenture.r2dbc.repository.FranquiciaDataRepository;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -22,8 +24,27 @@ public class FranquiciaAdapter extends ReactiveAdapterOperations<Franquicia, Fra
     }
 
     @Override
+    public Mono<Franquicia> save(Franquicia entity) {
+        return super.save(entity)
+                .onErrorMap(DatabaseExceptionMapper::map);
+    }
+
+    @Override
+    public Mono<Franquicia> findById(UUID id) {
+        return super.findById(id)
+                .onErrorMap(DatabaseExceptionMapper::map);
+    }
+
+    @Override
+    public Flux<Franquicia> findAll() {
+        return super.findAll()
+                .onErrorMap(DatabaseExceptionMapper::map);
+    }
+
+    @Override
     public Mono<Void> deleteById(UUID id) {
-        return repository.deleteById(id);
+        return repository.deleteById(id)
+                .onErrorMap(DatabaseExceptionMapper::map);
     }
 
     @Override
@@ -31,7 +52,8 @@ public class FranquiciaAdapter extends ReactiveAdapterOperations<Franquicia, Fra
         return repository.updateNameById(id, name)
                 .filter(rowsUpdated -> rowsUpdated > 0)
                 .flatMap(rowsUpdated -> repository.findById(id))
-                .map(this::toEntity);
+                .map(this::toEntity)
+                .onErrorMap(DatabaseExceptionMapper::map);
     }
 
 }

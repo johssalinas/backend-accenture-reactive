@@ -1,7 +1,9 @@
 package co.com.accenture.usecase.franquicia;
 
+import co.com.accenture.model.exception.message.BusinessErrorMessage;
 import co.com.accenture.model.franquicia.Franquicia;
 import co.com.accenture.model.franquicia.gateways.FranquiciaRepository;
+import co.com.accenture.model.validation.ReactiveValidationUtils;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,14 +16,20 @@ public class FranquiciaUseCase {
     private final FranquiciaRepository repository;
 
     public Mono<Franquicia> save(Franquicia franquicia) {
-        Franquicia franquiciaToSave = franquicia.toBuilder()
-                .id(UUID.randomUUID())
-                .build();
-        return repository.save(franquiciaToSave);
+        return ReactiveValidationUtils.requireNonNull(franquicia, BusinessErrorMessage.INVALID_FRANQUICIA_REQUEST)
+                .flatMap(request -> ReactiveValidationUtils
+                        .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_FRANQUICIA_NAME)
+                        .map(validName -> request.toBuilder().name(validName).build()))
+                .map(validFranquicia -> validFranquicia.toBuilder()
+                        .id(UUID.randomUUID())
+                        .build())
+                .flatMap(repository::save);
     }
 
     public Mono<Franquicia> findById(UUID id) {
-        return repository.findById(id);
+        return ReactiveValidationUtils.requireNonNull(id, BusinessErrorMessage.INVALID_FRANQUICIA_ID)
+                .flatMap(repository::findById)
+                .switchIfEmpty(ReactiveValidationUtils.businessError(BusinessErrorMessage.FRANQUICIA_NOT_FOUND));
     }
 
     public Flux<Franquicia> findAll() {
@@ -29,11 +37,17 @@ public class FranquiciaUseCase {
     }
 
     public Mono<Void> deleteById(UUID id) {
-        return repository.deleteById(id);
+        return ReactiveValidationUtils.requireNonNull(id, BusinessErrorMessage.INVALID_FRANQUICIA_ID)
+                .flatMap(repository::findById)
+                .switchIfEmpty(ReactiveValidationUtils.businessError(BusinessErrorMessage.FRANQUICIA_NOT_FOUND))
+                .flatMap(franquicia -> repository.deleteById(id));
     }
 
     public Mono<Franquicia> updateName(UUID id, String newName) {
-        return repository.updateName(id, newName)
-            .switchIfEmpty(Mono.error(new RuntimeException("Not found")));
+        return ReactiveValidationUtils.requireNonNull(id, BusinessErrorMessage.INVALID_FRANQUICIA_ID)
+                .flatMap(validId -> ReactiveValidationUtils
+                        .requireNonBlank(newName, BusinessErrorMessage.INVALID_FRANQUICIA_NAME)
+                        .flatMap(validName -> repository.updateName(validId, validName)))
+                .switchIfEmpty(ReactiveValidationUtils.businessError(BusinessErrorMessage.FRANQUICIA_NOT_FOUND));
     }
 }
