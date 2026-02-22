@@ -1,7 +1,7 @@
 package co.com.accenture.api.config;
 
-import co.com.accenture.api.Handler;
-import co.com.accenture.api.RouterRest;
+import co.com.accenture.api.franquicia.FranquiciaHandler;
+import co.com.accenture.api.franquicia.FranquiciaRouterRest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-@ContextConfiguration(classes = {RouterRest.class, Handler.class})
+@ContextConfiguration(classes = {FranquiciaRouterRest.class, FranquiciaHandler.class})
 @WebFluxTest
 @Import({CorsConfig.class, SecurityHeadersConfig.class})
 class ConfigTest {
