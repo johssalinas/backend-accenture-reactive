@@ -1,78 +1,93 @@
 package co.com.accenture.r2dbc;
 
+import co.com.accenture.model.franquicia.Franquicia;
+import co.com.accenture.r2dbc.entities.FranquiciaEntity;
+import co.com.accenture.r2dbc.repository.FranquiciaDataRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivecommons.utils.ObjectMapper;
-import org.springframework.data.domain.Example;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MyReactiveRepositoryAdapterTest {
-    // TODO: change four you own tests
-
     @InjectMocks
     FranquiciaAdapter repositoryAdapter;
 
     @Mock
-    MyReactiveRepository repository;
+    FranquiciaDataRepository repository;
 
     @Mock
     ObjectMapper mapper;
 
     @Test
     void mustFindValueById() {
+        UUID id = UUID.randomUUID();
+        FranquiciaEntity entity = FranquiciaEntity.builder().id(id).name("Franquicia Norte").build();
 
-        when(repository.findById("1")).thenReturn(Mono.just("test"));
-        when(mapper.map("test", Object.class)).thenReturn("test");
+        when(repository.findById(id)).thenReturn(Mono.just(entity));
 
-        Mono<Object> result = repositoryAdapter.findById("1");
+        Mono<Franquicia> result = repositoryAdapter.findById(id);
 
         StepVerifier.create(result)
-                .expectNextMatches(value -> value.equals("test"))
+                .expectNextMatches(value -> value.getId().equals(id) && value.getName().equals("Franquicia Norte"))
                 .verifyComplete();
     }
 
     @Test
     void mustFindAllValues() {
-        when(repository.findAll()).thenReturn(Flux.just("test"));
-        when(mapper.map("test", Object.class)).thenReturn("test");
+        UUID id = UUID.randomUUID();
+        when(repository.findAll()).thenReturn(Flux.just(FranquiciaEntity.builder().id(id).name("Franquicia Centro").build()));
 
-        Flux<Object> result = repositoryAdapter.findAll();
-
-        StepVerifier.create(result)
-                .expectNextMatches(value -> value.equals("test"))
-                .verifyComplete();
-    }
-
-    @Test
-    void mustFindByExample() {
-        when(repository.findAll(any(Example.class))).thenReturn(Flux.just("test"));
-        when(mapper.map("test", Object.class)).thenReturn("test");
-
-        Flux<Object> result = repositoryAdapter.findByExample("test");
+        Flux<Franquicia> result = repositoryAdapter.findAll();
 
         StepVerifier.create(result)
-                .expectNextMatches(value -> value.equals("test"))
+                .expectNextMatches(value -> value.getName().equals("Franquicia Centro"))
                 .verifyComplete();
     }
 
     @Test
     void mustSaveValue() {
-        when(repository.save("test")).thenReturn(Mono.just("test"));
-        when(mapper.map("test", Object.class)).thenReturn("test");
+        Franquicia request = Franquicia.builder().id(UUID.randomUUID()).name("Franquicia Sur").build();
+        FranquiciaEntity mapped = FranquiciaEntity.builder().id(request.getId()).name(request.getName()).build();
 
-        Mono<Object> result = repositoryAdapter.save("test");
+        when(mapper.map(request, FranquiciaEntity.class)).thenReturn(mapped);
+        when(repository.save(mapped)).thenReturn(Mono.just(mapped));
+
+        Mono<Franquicia> result = repositoryAdapter.save(request);
 
         StepVerifier.create(result)
-                .expectNextMatches(value -> value.equals("test"))
+                .expectNextMatches(value -> value.getId().equals(request.getId()) && value.getName().equals("Franquicia Sur"))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateNameShouldReturnEmptyWhenNoRowsAreUpdated() {
+        UUID id = UUID.randomUUID();
+        when(repository.updateNameById(id, "Nueva")).thenReturn(Mono.just(0));
+
+        StepVerifier.create(repositoryAdapter.updateName(id, "Nueva"))
+                .verifyComplete();
+
+        verify(repository).updateNameById(id, "Nueva");
+    }
+
+    @Test
+    void deleteByIdShouldComplete() {
+        UUID id = UUID.randomUUID();
+        when(repository.deleteById(id)).thenReturn(Mono.empty());
+
+        StepVerifier.create(repositoryAdapter.deleteById(id))
                 .verifyComplete();
     }
 }

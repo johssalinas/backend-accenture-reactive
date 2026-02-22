@@ -18,6 +18,8 @@ dependencies {
     runtimeOnly('org.springframework.boot:spring-boot-devtools')
     testImplementation 'com.tngtech.archunit:archunit:1.4.1'
     testImplementation 'tools.jackson.core:jackson-databind'
+    testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
+    testImplementation 'org.testcontainers:postgresql:1.21.3'
 }
 
 tasks.register('explodedJar', Copy) {
@@ -33,4 +35,31 @@ jar {
 bootJar {
     // Sets output jar name
     archiveFileName = "${project.getParent().getName()}.${archiveExtension.get()}"
+}
+
+tasks.register('normalizeArchitectureGeneratedTests') {
+    doLast {
+        def basePackage = rootProject.findProperty('package') ?: 'co.com.accenture'
+        def testDir = file('src/test/java')
+
+        if (!testDir.exists()) {
+            return
+        }
+
+        fileTree(testDir).matching { include '**/*.java' }.files.each { javaFile ->
+            def content = javaFile.getText('UTF-8')
+            def normalized = content
+                    .replace('co.com.bancolombia.Utils', "${basePackage}.Utils")
+                    .replace('import static co.com.bancolombia.', 'import static ' + basePackage + '.')
+                    .replace('package co.com.bancolombia;', "package ${basePackage};")
+
+            if (normalized != content) {
+                javaFile.write(normalized, 'UTF-8')
+            }
+        }
+    }
+}
+
+tasks.named('compileTestJava') {
+    dependsOn 'normalizeArchitectureGeneratedTests'
 }

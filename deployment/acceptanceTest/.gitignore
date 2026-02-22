@@ -334,9 +334,3 @@ gradle-app.setting
 # -----
 *.hprof
 build-cache
-
-.env
-
-# Acceptance test reports
-deployment/acceptanceTest/target/
-deployment/acceptanceTest/cucumber-html-reports/

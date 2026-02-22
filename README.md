@@ -42,6 +42,73 @@ Los entry points representan los puntos de entrada de la aplicación o el inicio
 
 ## Application
 
-Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”.
+Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”).
 
 **Los beans de los casos de uso se disponibilizan automaticamente gracias a un '@ComponentScan' ubicado en esta capa.**
+
+## Estrategia de pruebas
+
+Se incluyó una estrategia QA automatizada con pruebas por módulo y por nivel:
+
+- Unitarias (model, usecase, entry-point y adapter) con JUnit5, Mockito y StepVerifier.
+- Integración real con base de datos PostgreSQL usando Testcontainers.
+- E2E del API reactivo con WebTestClient.
+- Aceptación con Karate en deployment/acceptanceTest (generado con gat).
+
+## Ejecutar pruebas
+
+> Ejecuta los comandos desde la raíz del proyecto (`backend-accenture-reactive`) en PowerShell.
+
+### Ejecutar todo (recomendado)
+
+```powershell
+.\scripts\smoke-acceptance.ps1
+```
+
+Este comando:
+- levanta la base de datos de pruebas,
+- inicia la API,
+- ejecuta acceptance tests,
+- y apaga el entorno al finalizar.
+
+### Ejecutar pruebas rápidas (mock)
+
+```powershell
+.\gradlew :model:test :usecase:test :reactive-web:test :r2dbc-postgresql:test
+```
+
+### Ejecutar integración real con PostgreSQL (Testcontainers)
+
+```powershell
+.\gradlew :app-service:test --tests "*FranquiciaApiIntegrationTest"
+```
+
+### Ejecutar suite principal completa
+
+```powershell
+.\gradlew test
+```
+
+### Ejecutar aceptación (Karate)
+
+1. Levantar API + DB localmente o por Docker.
+2. Ejecutar el subproyecto:
+
+```powershell
+Set-Location .\deployment\acceptanceTest
+.\gradlew clean test "-Dkarate.options=--tags @acceptanceTest" "-DbaseUrl=http://localhost:8080"
+```
+
+### Entorno de pruebas real por Docker
+
+```powershell
+docker compose --env-file .env.test -f deployment/docker-compose.test.yml up -d
+```
+
+Para apagar:
+
+```powershell
+docker compose --env-file .env.test -f deployment/docker-compose.test.yml down
+```
+
+Variables disponibles en .env.test para estandarizar ejecución local/CI.
