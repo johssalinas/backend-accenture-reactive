@@ -19,12 +19,18 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class FranquiciaHandler {
+    private static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
+    private static final String CLIENT_ID_HEADER = "X-Client-Id";
+
     private final FranquiciaUseCase useCase;
 
     public Mono<ServerResponse> save(@NonNull ServerRequest request) {
         return request.bodyToMono(Franquicia.class)
                 .switchIfEmpty(getBusinessError(BusinessErrorMessage.INVALID_FRANQUICIA_REQUEST))
-                .flatMap(useCase::save)
+                .flatMap(franquicia -> useCase.save(
+                        request.headers().firstHeader(CLIENT_ID_HEADER),
+                        request.headers().firstHeader(IDEMPOTENCY_KEY_HEADER),
+                        franquicia))
                 .flatMap(franquiciaCreada -> ServerResponse
                         .created(URI.create("/api/franquicias/" + franquiciaCreada.getId()))
                         .bodyValue(franquiciaCreada))

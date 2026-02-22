@@ -53,7 +53,15 @@ public class GlobalErrorWebExceptionHandler implements WebExceptionHandler {
             BusinessErrorMessage businessError = businessException.getBusinessErrorMessage();
             HttpStatus status = switch (businessError) {
                 case FRANQUICIA_NOT_FOUND -> HttpStatus.NOT_FOUND;
-                case INVALID_FRANQUICIA_ID, INVALID_FRANQUICIA_NAME, INVALID_FRANQUICIA_REQUEST -> HttpStatus.BAD_REQUEST;
+                case INVALID_FRANQUICIA_ID,
+                        INVALID_FRANQUICIA_NAME,
+                        INVALID_FRANQUICIA_REQUEST,
+                        INVALID_CLIENT_ID,
+                        INVALID_IDEMPOTENCY_KEY ->
+                    HttpStatus.BAD_REQUEST;
+                case IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST,
+                        IDEMPOTENCY_REQUEST_IN_PROGRESS ->
+                    HttpStatus.CONFLICT;
             };
             return payload(status, businessError.getCode(), businessError.getDescription(), exchange);
         }
@@ -72,8 +80,7 @@ public class GlobalErrorWebExceptionHandler implements WebExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 TechnicalErrorMessage.DATABASE_OPERATION_ERROR.getCode(),
                 TechnicalErrorMessage.DATABASE_OPERATION_ERROR.getDescription(),
-                exchange
-        );
+                exchange);
     }
 
     private ErrorPayload payload(HttpStatus status, String code, String message, ServerWebExchange exchange) {
@@ -85,9 +92,7 @@ public class GlobalErrorWebExceptionHandler implements WebExceptionHandler {
                         "status", status.value(),
                         "code", code,
                         "message", message,
-                        "requestId", exchange.getRequest().getId()
-                )
-        );
+                        "requestId", exchange.getRequest().getId()));
     }
 
     private record ErrorPayload(HttpStatus status, Map<String, Object> body) {

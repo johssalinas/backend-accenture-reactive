@@ -20,14 +20,21 @@ public final class ApiErrorResponseMapper {
 
         HttpStatus status = switch (businessErrorMessage) {
             case FRANQUICIA_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case INVALID_FRANQUICIA_ID, INVALID_FRANQUICIA_NAME, INVALID_FRANQUICIA_REQUEST -> HttpStatus.BAD_REQUEST;
+            case INVALID_FRANQUICIA_ID,
+                    INVALID_FRANQUICIA_NAME,
+                    INVALID_FRANQUICIA_REQUEST,
+                    INVALID_CLIENT_ID,
+                    INVALID_IDEMPOTENCY_KEY ->
+                HttpStatus.BAD_REQUEST;
+            case IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST,
+                    IDEMPOTENCY_REQUEST_IN_PROGRESS ->
+                HttpStatus.CONFLICT;
         };
 
         return ServerResponse.status(status)
                 .bodyValue(Map.of(
                         "code", businessErrorMessage.getCode(),
-                        "message", businessErrorMessage.getDescription()
-                ));
+                        "message", businessErrorMessage.getDescription()));
     }
 
     public static Mono<ServerResponse> mapTechnical(TechnicalException exception) {
@@ -42,15 +49,13 @@ public final class ApiErrorResponseMapper {
         return ServerResponse.status(status)
                 .bodyValue(Map.of(
                         "code", technicalErrorMessage.getCode(),
-                        "message", technicalErrorMessage.getDescription()
-                ));
+                        "message", technicalErrorMessage.getDescription()));
     }
 
     public static Mono<ServerResponse> mapUnknown() {
         return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .bodyValue(Map.of(
                         "code", TechnicalErrorMessage.DATABASE_OPERATION_ERROR.getCode(),
-                        "message", TechnicalErrorMessage.DATABASE_OPERATION_ERROR.getDescription()
-                ));
+                        "message", TechnicalErrorMessage.DATABASE_OPERATION_ERROR.getDescription()));
     }
 }

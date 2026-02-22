@@ -3,7 +3,10 @@ package co.com.accenture.usecase.franquicia;
 import co.com.accenture.model.exception.message.BusinessErrorMessage;
 import co.com.accenture.model.franquicia.Franquicia;
 import co.com.accenture.model.franquicia.gateways.FranquiciaRepository;
+import co.com.accenture.model.idempotency.gateways.IdempotencyRepository;
 import co.com.accenture.model.validation.ReactiveValidationUtils;
+import co.com.accenture.usecase.franquicia.helper.FranquiciaIdempotencyCodec;
+import co.com.accenture.usecase.idempotency.IdempotencyFlowHelper;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,16 +17,21 @@ import java.util.UUID;
 public class FranquiciaUseCase {
 
     private final FranquiciaRepository repository;
+    private final IdempotencyRepository idempotencyRepository;
 
-    public Mono<Franquicia> save(Franquicia franquicia) {
+    public Mono<Franquicia> save(String clientId, String idempotencyKey, Franquicia franquicia) {
         return ReactiveValidationUtils.requireNonNull(franquicia, BusinessErrorMessage.INVALID_FRANQUICIA_REQUEST)
                 .flatMap(request -> ReactiveValidationUtils
                         .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_FRANQUICIA_NAME)
                         .map(validName -> request.toBuilder().name(validName).build()))
-                .map(validFranquicia -> validFranquicia.toBuilder()
-                        .id(UUID.randomUUID())
-                        .build())
-                .flatMap(repository::save);
+                .flatMap(validRequest -> IdempotencyFlowHelper.execute(
+                        idempotencyRepository,
+                        clientId,
+                        idempotencyKey,
+                        validRequest,
+                        () -> Mono.just(validRequest.toBuilder().id(UUID.randomUUID()).build())
+                                .flatMap(repository::save),
+                        FranquiciaIdempotencyCodec.INSTANCE));
     }
 
     public Mono<Franquicia> findById(UUID id) {

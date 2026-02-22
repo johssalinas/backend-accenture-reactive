@@ -27,73 +27,77 @@ import static org.mockito.Mockito.when;
 @Import({ CorsConfig.class, SecurityHeadersConfig.class })
 class FranquiciaRouterRestTest {
 
-    @Autowired
-    private WebTestClient webTestClient;
+        @Autowired
+        private WebTestClient webTestClient;
 
-    @MockitoBean
-    private FranquiciaUseCase useCase;
+        @MockitoBean
+        private FranquiciaUseCase useCase;
 
-    @Test
-    void saveShouldReturnCreated() {
-        UUID id = UUID.randomUUID();
-        Franquicia response = Franquicia.builder().id(id).name("Franquicia Centro").build();
+        @Test
+        void saveShouldReturnCreated() {
+                UUID id = UUID.randomUUID();
+                Franquicia response = Franquicia.builder().id(id).name("Franquicia Centro").build();
 
-        when(useCase.save(any(Franquicia.class))).thenReturn(Mono.just(response));
+                when(useCase.save(eq("cliente-1"), eq("idem-1"), any(Franquicia.class)))
+                                .thenReturn(Mono.just(response));
 
-        webTestClient.post()
-                .uri("/api/franquicias")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue("""
-                        {
-                          "name": "Franquicia Centro"
-                        }
-                        """)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectHeader().valueEquals("Location", "/api/franquicias/" + id)
-                .expectBody()
-                .jsonPath("$.name").isEqualTo("Franquicia Centro");
-    }
+                webTestClient.post()
+                                .uri("/api/franquicias")
+                                .header("X-Client-Id", "cliente-1")
+                                .header("Idempotency-Key", "idem-1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("""
+                                                {
+                                                  "name": "Franquicia Centro"
+                                                }
+                                                """)
+                                .exchange()
+                                .expectStatus().isCreated()
+                                .expectHeader().valueEquals("Location", "/api/franquicias/" + id)
+                                .expectBody()
+                                .jsonPath("$.name").isEqualTo("Franquicia Centro");
+        }
 
-    @Test
-    void findByIdShouldReturnBadRequestWhenIdIsInvalid() {
-        webTestClient.get()
-                .uri("/api/franquicias/id-invalido")
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectBody()
-                .jsonPath("$.code").isEqualTo("FRA4001");
-    }
+        @Test
+        void findByIdShouldReturnBadRequestWhenIdIsInvalid() {
+                webTestClient.get()
+                                .uri("/api/franquicias/id-invalido")
+                                .exchange()
+                                .expectStatus().isBadRequest()
+                                .expectBody()
+                                .jsonPath("$.code").isEqualTo("FRA4001");
+        }
 
-    @Test
-    void updateNameShouldReturnNotFound() {
-        UUID id = UUID.randomUUID();
-        when(useCase.updateName(eq(id), eq("Nueva")))
-                .thenReturn(Mono.error(new BusinessException(BusinessErrorMessage.FRANQUICIA_NOT_FOUND)));
+        @Test
+        void updateNameShouldReturnNotFound() {
+                UUID id = UUID.randomUUID();
+                when(useCase.updateName(eq(id), eq("Nueva")))
+                                .thenReturn(Mono.error(
+                                                new BusinessException(BusinessErrorMessage.FRANQUICIA_NOT_FOUND)));
 
-        webTestClient.patch()
-                .uri("/api/franquicias/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue("""
-                        {
-                          "name": "Nueva"
-                        }
-                        """)
-                .exchange()
-                .expectStatus().isNotFound()
-                .expectBody()
-                .jsonPath("$.code").isEqualTo("FRA404");
-    }
+                webTestClient.patch()
+                                .uri("/api/franquicias/{id}", id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("""
+                                                {
+                                                  "name": "Nueva"
+                                                }
+                                                """)
+                                .exchange()
+                                .expectStatus().isNotFound()
+                                .expectBody()
+                                .jsonPath("$.code").isEqualTo("FRA404");
+        }
 
-    @Test
-    void deleteShouldReturnNoContent() {
-        UUID id = UUID.randomUUID();
-        when(useCase.deleteById(id)).thenReturn(Mono.empty());
+        @Test
+        void deleteShouldReturnNoContent() {
+                UUID id = UUID.randomUUID();
+                when(useCase.deleteById(id)).thenReturn(Mono.empty());
 
-        webTestClient.delete()
-                .uri("/api/franquicias/{id}", id)
-                .exchange()
+                webTestClient.delete()
+                                .uri("/api/franquicias/{id}", id)
+                                .exchange()
                                 .expectStatus().isNoContent()
                                 .expectHeader().valueEquals("X-Content-Type-Options", "nosniff");
-    }
+        }
 }
