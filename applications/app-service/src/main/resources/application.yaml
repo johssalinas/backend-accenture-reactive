@@ -5,20 +5,11 @@ spring:
   application:
     name: "BackendAccentureReactive"
 
-  # 1. Configuración Reactiva (R2DBC)
-  r2dbc:
-    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5432/franquicias_db}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:admin}
-    pool:
-      initial-size: ${DB_POOL_INIT:5}
-      max-size: ${DB_POOL_MAX:20}
-
-  # 2. Configuración de Migraciones
+  # Configuración de Migraciones
   flyway:
-    url: ${JDBC_URL:jdbc:postgresql://localhost:5432/franquicias_db}
+    url: ${JDBC_URL:jdbc:postgresql://localhost:5432/accenture_db}
     user: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:admin}
+    password: ${DB_PASSWORD:postgres}
     enabled: true
     baseline-on-migrate: true
 
@@ -28,3 +19,12 @@ springdoc:
 
 cors:
   allowed-origins: ${CORS_ALLOWED:http://localhost:4200,http://localhost:8080}
+
+adapters:
+  r2dbc:
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:accenture_db}
+    schema: ${DB_SCHEMA:public}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}

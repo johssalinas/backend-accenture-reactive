@@ -4,16 +4,15 @@ services:
     container_name: backend-accenture-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: postgres
+      POSTGRES_DB: accenture_db
       POSTGRES_USER: postgres
-      DB_PASSWORD: postgres
-      R2DBC_URL: r2dbc:postgresql://db_host:5432/franquicias_db
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d accenture_db"]
       interval: 10s
       timeout: 5s
       retries: 5
