@@ -1,0 +1,16 @@
+# Terraform Example Variables
+# Copiar a terraform.tfvars y ajustar valores
+
+aws_region     = "us-east-1"
+environment    = "dev"
+project_name   = "accenture"
+db_username    = "postgres"
+vpc_cidr       = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+self_signed_cert_common_name    = "accenture.local"
+self_signed_cert_validity_hours = 8760
+
+ecs_desired_count = 1
+ecs_cpu           = 512
+ecs_memory        = 1024
+log_retention_days = 14

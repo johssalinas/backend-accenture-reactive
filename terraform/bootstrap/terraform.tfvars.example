@@ -1,0 +1,5 @@
+aws_region         = "us-east-1"
+project_name       = "accenture"
+environment        = "dev"
+tfstate_bucket_name = "franchise-api-dev-tfstate"
+tf_lock_table_name  = "franchise-api-dev-tf-locks"
