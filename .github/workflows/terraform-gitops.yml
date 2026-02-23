@@ -37,7 +37,32 @@ jobs:
 
       - name: Debug OIDC claims
         if: ${{ vars.DEBUG_OIDC == 'true' }}
-        uses: github/actions-oidc-debugger@v1
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+            echo "OIDC context no disponible en este job"
+            exit 0
+          fi
+
+          token_response=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
+          jwt=$(python3 -c "import sys,json; print(json.load(sys.stdin)['value'])" <<< "$token_response")
+
+          python3 - <<'PY' "$jwt"
+import base64
+import json
+import sys
+
+jwt = sys.argv[1]
+parts = jwt.split('.')
+if len(parts) < 2:
+    raise SystemExit('JWT inválido')
+payload = parts[1]
+padding = '=' * (-len(payload) % 4)
+claims = json.loads(base64.urlsafe_b64decode(payload + padding).decode('utf-8'))
+for key in ("iss", "aud", "sub", "ref", "repository", "job_workflow_ref", "environment"):
+    print(f"{key}: {claims.get(key)}")
+PY
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -104,7 +129,32 @@ jobs:
 
       - name: Debug OIDC claims
         if: ${{ vars.DEBUG_OIDC == 'true' }}
-        uses: github/actions-oidc-debugger@v1
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+            echo "OIDC context no disponible en este job"
+            exit 0
+          fi
+
+          token_response=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
+          jwt=$(python3 -c "import sys,json; print(json.load(sys.stdin)['value'])" <<< "$token_response")
+
+          python3 - <<'PY' "$jwt"
+import base64
+import json
+import sys
+
+jwt = sys.argv[1]
+parts = jwt.split('.')
+if len(parts) < 2:
+    raise SystemExit('JWT inválido')
+payload = parts[1]
+padding = '=' * (-len(payload) % 4)
+claims = json.loads(base64.urlsafe_b64decode(payload + padding).decode('utf-8'))
+for key in ("iss", "aud", "sub", "ref", "repository", "job_workflow_ref", "environment"):
+    print(f"{key}: {claims.get(key)}")
+PY
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
