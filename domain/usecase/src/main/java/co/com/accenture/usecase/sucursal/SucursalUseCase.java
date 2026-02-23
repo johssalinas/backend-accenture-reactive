@@ -31,6 +31,9 @@ public class SucursalUseCase {
                 sucursal,
                 () -> ReactiveValidationUtils
                         .requireNonNull(sucursal, BusinessErrorMessage.INVALID_REQUEST_BODY)
+                        .map(request -> request.getId() == null
+                                ? request.toBuilder().id(UUID.randomUUID()).build()
+                                : request)
                         .flatMap(request -> ReactiveValidationUtils
                                 .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_RESOURCE_NAME)
                                 .flatMap(validName -> ReactiveValidationUtils

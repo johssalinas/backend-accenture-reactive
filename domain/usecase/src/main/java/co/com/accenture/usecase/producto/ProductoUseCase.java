@@ -37,6 +37,9 @@ public class ProductoUseCase {
                 producto,
                 () -> ReactiveValidationUtils
                         .requireNonNull(producto, BusinessErrorMessage.INVALID_REQUEST_BODY)
+                        .map(request -> request.getId() == null
+                                ? request.toBuilder().id(UUID.randomUUID()).build()
+                                : request)
                         .flatMap(this::validateAndNormalize)
                         .flatMap(repository::save)
                         .flatMap(saved -> cacheRepository.putById(saved)

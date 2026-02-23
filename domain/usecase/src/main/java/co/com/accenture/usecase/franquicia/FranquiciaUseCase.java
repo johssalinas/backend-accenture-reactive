@@ -29,6 +29,9 @@ public class FranquiciaUseCase {
                 franquicia,
                 () -> ReactiveValidationUtils
                         .requireNonNull(franquicia, BusinessErrorMessage.INVALID_REQUEST_BODY)
+                        .map(request -> request.getId() == null
+                                ? request.toBuilder().id(UUID.randomUUID()).build()
+                                : request)
                         .flatMap(request -> ReactiveValidationUtils
                                 .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_RESOURCE_NAME)
                                 .map(validName -> request.toBuilder().name(validName).build()))

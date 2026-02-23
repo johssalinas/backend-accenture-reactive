@@ -40,23 +40,24 @@ bootJar {
 
 tasks.register('normalizeArchitectureGeneratedTests') {
     def basePackage = providers.gradleProperty('package').getOrElse('co.com.accenture')
+    def testDir = layout.projectDirectory.dir('src/test/java').asFile
 
     doLast {
-        def testDir = file('src/test/java')
-
         if (!testDir.exists()) {
             return
         }
 
-        fileTree(testDir).matching { include '**/*.java' }.files.each { javaFile ->
-            def content = javaFile.getText('UTF-8')
-            def normalized = content
-                    .replace('co.com.bancolombia.Utils', "${basePackage}.Utils")
-                    .replace('import static co.com.bancolombia.', 'import static ' + basePackage + '.')
-                    .replace('package co.com.bancolombia;', "package ${basePackage};")
+        testDir.eachFileRecurse { javaFile ->
+            if (javaFile.name.endsWith('.java')) {
+                def content = javaFile.getText('UTF-8')
+                def normalized = content
+                        .replace('co.com.bancolombia.Utils', "${basePackage}.Utils")
+                        .replace('import static co.com.bancolombia.', 'import static ' + basePackage + '.')
+                        .replace('package co.com.bancolombia;', "package ${basePackage};")
 
-            if (normalized != content) {
-                javaFile.write(normalized, 'UTF-8')
+                if (normalized != content) {
+                    javaFile.write(normalized, 'UTF-8')
+                }
             }
         }
     }
