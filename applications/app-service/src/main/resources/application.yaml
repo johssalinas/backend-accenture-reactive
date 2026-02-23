@@ -32,6 +32,7 @@ adapters:
     schema: ${DB_SCHEMA:public}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
+    ssl: ${DB_SSL:true}
   redis:
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}

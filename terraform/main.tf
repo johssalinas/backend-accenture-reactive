@@ -509,11 +509,23 @@ resource "aws_ecs_task_definition" "app" {
           value = "franchise_db"
         },
         {
+          name  = "DB_SSL"
+          value = "true"
+        },
+        {
           name  = "REDIS_HOST"
           value = aws_elasticache_cluster.redis.cache_nodes[0].address
         },
         {
           name  = "REDIS_PORT"
+          value = tostring(aws_elasticache_cluster.redis.cache_nodes[0].port)
+        },
+        {
+          name  = "SPRING_DATA_REDIS_HOST"
+          value = aws_elasticache_cluster.redis.cache_nodes[0].address
+        },
+        {
+          name  = "SPRING_DATA_REDIS_PORT"
           value = tostring(aws_elasticache_cluster.redis.cache_nodes[0].port)
         }
       ]

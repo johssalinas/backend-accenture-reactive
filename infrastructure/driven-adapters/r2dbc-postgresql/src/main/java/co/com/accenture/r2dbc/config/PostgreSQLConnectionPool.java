@@ -11,32 +11,37 @@ import java.time.Duration;
 
 @Configuration
 public class PostgreSQLConnectionPool {
-    /* Change these values for your project */
-    public static final int INITIAL_SIZE = 12;
-    public static final int MAX_SIZE = 15;
-    public static final int MAX_IDLE_TIME = 30;
-    public static final int DEFAULT_PORT = 5432;
+        /* Change these values for your project */
+        public static final int INITIAL_SIZE = 12;
+        public static final int MAX_SIZE = 15;
+        public static final int MAX_IDLE_TIME = 30;
+        public static final int DEFAULT_PORT = 5432;
 
-	@Bean
-	public ConnectionPool getConnectionConfig(PostgresqlConnectionProperties properties) {
-		PostgresqlConnectionConfiguration dbConfiguration = PostgresqlConnectionConfiguration.builder()
-                .host(properties.host())
-                .port(properties.port())
-                .database(properties.database())
-                .schema(properties.schema())
-                .username(properties.username())
-                .password(properties.password())
-                .build();
+        @Bean
+        public ConnectionPool getConnectionConfig(PostgresqlConnectionProperties properties) {
+                PostgresqlConnectionConfiguration.Builder dbBuilder = PostgresqlConnectionConfiguration.builder()
+                                .host(properties.host())
+                                .port(properties.port())
+                                .database(properties.database())
+                                .schema(properties.schema())
+                                .username(properties.username())
+                                .password(properties.password());
 
-        ConnectionPoolConfiguration poolConfiguration = ConnectionPoolConfiguration.builder()
-                .connectionFactory(new PostgresqlConnectionFactory(dbConfiguration))
-                .name("api-postgres-connection-pool")
-                .initialSize(INITIAL_SIZE)
-                .maxSize(MAX_SIZE)
-                .maxIdleTime(Duration.ofMinutes(MAX_IDLE_TIME))
-                .validationQuery("SELECT 1")
-                .build();
+                if (properties.ssl() == null || properties.ssl()) {
+                        dbBuilder.enableSsl();
+                }
 
-		return new ConnectionPool(poolConfiguration);
-	}
+                PostgresqlConnectionConfiguration dbConfiguration = dbBuilder.build();
+
+                ConnectionPoolConfiguration poolConfiguration = ConnectionPoolConfiguration.builder()
+                                .connectionFactory(new PostgresqlConnectionFactory(dbConfiguration))
+                                .name("api-postgres-connection-pool")
+                                .initialSize(INITIAL_SIZE)
+                                .maxSize(MAX_SIZE)
+                                .maxIdleTime(Duration.ofMinutes(MAX_IDLE_TIME))
+                                .validationQuery("SELECT 1")
+                                .build();
+
+                return new ConnectionPool(poolConfiguration);
+        }
 }
