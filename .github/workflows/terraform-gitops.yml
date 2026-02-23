@@ -47,22 +47,7 @@ jobs:
 
           token_response=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
           jwt=$(python3 -c "import sys,json; print(json.load(sys.stdin)['value'])" <<< "$token_response")
-
-          python3 - <<'PY' "$jwt"
-import base64
-import json
-import sys
-
-jwt = sys.argv[1]
-parts = jwt.split('.')
-if len(parts) < 2:
-    raise SystemExit('JWT inválido')
-payload = parts[1]
-padding = '=' * (-len(payload) % 4)
-claims = json.loads(base64.urlsafe_b64decode(payload + padding).decode('utf-8'))
-for key in ("iss", "aud", "sub", "ref", "repository", "job_workflow_ref", "environment"):
-    print(f"{key}: {claims.get(key)}")
-PY
+            python3 -c "import base64,json,sys; parts=sys.argv[1].split('.'); assert len(parts)>=2, 'JWT invalido'; payload=parts[1] + '=' * (-len(parts[1]) % 4); claims=json.loads(base64.urlsafe_b64decode(payload).decode('utf-8')); [print(f'{k}: {claims.get(k)}') for k in ('iss','aud','sub','ref','repository','job_workflow_ref','environment')]" "$jwt"
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -139,22 +124,7 @@ PY
 
           token_response=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
           jwt=$(python3 -c "import sys,json; print(json.load(sys.stdin)['value'])" <<< "$token_response")
-
-          python3 - <<'PY' "$jwt"
-import base64
-import json
-import sys
-
-jwt = sys.argv[1]
-parts = jwt.split('.')
-if len(parts) < 2:
-    raise SystemExit('JWT inválido')
-payload = parts[1]
-padding = '=' * (-len(payload) % 4)
-claims = json.loads(base64.urlsafe_b64decode(payload + padding).decode('utf-8'))
-for key in ("iss", "aud", "sub", "ref", "repository", "job_workflow_ref", "environment"):
-    print(f"{key}: {claims.get(key)}")
-PY
+            python3 -c "import base64,json,sys; parts=sys.argv[1].split('.'); assert len(parts)>=2, 'JWT invalido'; payload=parts[1] + '=' * (-len(parts[1]) % 4); claims=json.loads(base64.urlsafe_b64decode(payload).decode('utf-8')); [print(f'{k}: {claims.get(k)}') for k in ('iss','aud','sub','ref','repository','job_workflow_ref','environment')]" "$jwt"
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
