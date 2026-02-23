@@ -39,8 +39,9 @@ bootJar {
 }
 
 tasks.register('normalizeArchitectureGeneratedTests') {
+    def basePackage = providers.gradleProperty('package').getOrElse('co.com.accenture')
+
     doLast {
-        def basePackage = rootProject.findProperty('package') ?: 'co.com.accenture'
         def testDir = file('src/test/java')
 
         if (!testDir.exists()) {

@@ -434,6 +434,7 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
   })
 }
 
+
 resource "aws_lb_target_group" "app" {
   name        = "${var.project_name}-tg"
   port        = 8080
