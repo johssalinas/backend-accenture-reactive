@@ -1,114 +1,201 @@
-# Proyecto Base Implementando Clean Architecture
+# Prueba Práctica Backend - Gestión de Franquicias (Reactive)
 
-## Antes de Iniciar
+API reactiva construida con Spring Boot (WebFlux), siguiendo como base el scaffold de **Clean Architecture de Bancolombia**. La solución implementa el dominio de franquicias, sucursales y productos con persistencia en PostgreSQL + Redis, empaquetado con Docker, pruebas automatizadas por niveles e infraestructura en AWS aprovisionada con Terraform.
 
-Empezaremos por explicar los diferentes componentes del proyectos y partiremos de los componentes externos, continuando con los componentes core de negocio (dominio) y por último el inicio y configuración de la aplicación.
+## 1. Contexto y objetivo
 
-Lee el artículo [Clean Architecture — Aislando los detalles](https://medium.com/bancolombia-tech/clean-architecture-aislando-los-detalles-4f9530f35d7a)
+La prueba solicita un API para administrar:
 
-# Arquitectura
+- Franquicias
+- Sucursales por franquicia
+- Productos por sucursal
+- Stock por producto/sucursal
 
-![Clean Architecture](https://miro.medium.com/max/1400/1*ZdlHz8B0-qu9Y-QO3AXR_w.png)
+Además, se requiere evidencia de buenas prácticas de ingeniería: arquitectura limpia, trabajo con Git, documentación de despliegue local, y puntos extra de contenedorización, enfoque reactivo, IaC y despliegue cloud.
 
-## Domain
+## 2. Base arquitectónica: Scaffold Clean Architecture (Bancolombia)
 
-Es el módulo más interno de la arquitectura, pertenece a la capa del dominio y encapsula la lógica y reglas del negocio mediante modelos y entidades del dominio.
+Referencia conceptual: [Clean Architecture — Aislando los detalles](https://medium.com/bancolombia-tech/clean-architecture-aislando-los-detalles-4f9530f35d7a).
 
-## Usecases
+La solución respeta la separación por capas del scaffold:
 
-Este módulo gradle perteneciente a la capa del dominio, implementa los casos de uso del sistema, define lógica de aplicación y reacciona a las invocaciones desde el módulo de entry points, orquestando los flujos hacia el módulo de entities.
+### Domain (`domain/model`)
 
-## Infrastructure
+Contiene entidades, objetos de valor, contratos (gateways) y reglas de negocio puras. No depende de frameworks.
 
-### Helpers
+### Use Cases (`domain/usecase`)
 
-En el apartado de helpers tendremos utilidades generales para los Driven Adapters y Entry Points.
+Orquesta la lógica de aplicación y casos de uso del negocio. Depende solo de abstracciones del dominio.
 
-Estas utilidades no están arraigadas a objetos concretos, se realiza el uso de generics para modelar comportamientos
-genéricos de los diferentes objetos de persistencia que puedan existir, este tipo de implementaciones se realizan
-basadas en el patrón de diseño [Unit of Work y Repository](https://medium.com/@krzychukosobudzki/repository-design-pattern-bc490b256006)
+### Infrastructure
 
-Estas clases no puede existir solas y debe heredarse su compartimiento en los **Driven Adapters**
+- **Entry Points** (`infrastructure/entry-points/reactive-web`): expone endpoints HTTP reactivos.
+- **Driven Adapters** (`infrastructure/driven-adapters`): implementaciones concretas de persistencia e integraciones.
+  - `r2dbc-postgresql`: persistencia principal transaccional.
+  - `redis`: soporte de idempotencia y desempeño de operaciones técnicas.
+- **Helpers**: utilidades transversales para adapter y entry points.
 
-### Driven Adapters
+### Application (`applications/app-service`)
 
-Los driven adapter representan implementaciones externas a nuestro sistema, como lo son conexiones a servicios rest,
-soap, bases de datos, lectura de archivos planos, y en concreto cualquier origen y fuente de datos con la que debamos
-interactuar.
+Ensambla dependencias, configura beans y arranca la aplicación Spring Boot.
 
-### Entry Points
+## 3. Stack tecnológico
 
-Los entry points representan los puntos de entrada de la aplicación o el inicio de los flujos de negocio.
+- Java + Spring Boot + WebFlux (programación reactiva)
+- Gradle multi-módulo
+- PostgreSQL (persistencia principal)
+- Redis (persistencia de apoyo)
+- R2DBC + Flyway
+- Docker / Docker Compose
+- JUnit5, Mockito, StepVerifier, WebTestClient, Karate, Testcontainers
+- Terraform + GitHub Actions (GitOps para AWS)
 
-## Application
+## 4. Cumplimiento de criterios de aceptación
 
-Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”).
+| Criterio solicitado | Estado | Evidencia funcional |
+|---|---|---|
+| API desarrollada en Spring Boot | ✅ OK | Proyecto basado en Spring Boot reactivo (`app-service`) |
+| Agregar nueva franquicia | ✅ OK | `POST /api/franquicias` |
+| Agregar nueva sucursal a franquicia | ✅ OK | `POST /api/sucursales` |
+| Agregar nuevo producto a sucursal | ✅ OK | `POST /api/productos` con lista `sucursales` y `stock` |
+| Eliminar producto de una sucursal/franquicia | ✅ OK | `DELETE /api/productos/{id}` |
+| Modificar stock de producto | ✅ OK | Flujo soportado en el modelo reactivo de producto/sucursal y persistencia por upsert de stock |
+| Consultar producto con mayor stock por sucursal para una franquicia | ✅ OK | `GET /api/franquicias/{franquiciaId}/productos/max-stock-por-sucursal` |
+| Persistencia en motor de datos | ✅ OK | PostgreSQL (principal) + Redis (apoyo) |
 
-**Los beans de los casos de uso se disponibilizan automaticamente gracias a un '@ComponentScan' ubicado en esta capa.**
+### Puntos extra
 
-## Estrategia de pruebas
+| Plus | Estado | Evidencia |
+|---|---|---|
+| Empaquetado con Docker | ✅ OK | `deployment/Dockerfile` + `deployment/docker-compose.yml` |
+| Programación funcional/reactiva | ✅ OK | Spring WebFlux + Reactor + StepVerifier |
+| Actualizar nombre de franquicia | ✅ OK | `PATCH /api/franquicias/{id}` |
+| Actualizar nombre de sucursal | ✅ OK | `PATCH /api/sucursales/{id}` |
+| Actualizar nombre de producto | ✅ OK | `PATCH /api/productos/{id}` |
+| Persistencia aprovisionada como IaC | ✅ OK | Terraform en `terraform/` |
+| Despliegue en nube | ✅ OK | Arquitectura AWS + pipeline GitOps |
 
-Se incluyó una estrategia QA automatizada con pruebas por módulo y por nivel:
+## 5. Endpoints principales
+
+El set de pruebas y ejemplos de consumo está en `api-casos-uso.http`.
+
+- Franquicias: `POST`, `GET`, `PATCH`, `DELETE` en `/api/franquicias`
+- Sucursales: `POST`, `GET`, `PATCH`, `DELETE` en `/api/sucursales`
+- Productos: `POST`, `GET`, `PATCH`, `DELETE` en `/api/productos`
+- Consulta agregada: `GET /api/franquicias/{franquiciaId}/productos/max-stock-por-sucursal`
+
+## 6. Despliegue local (documentación solicitada)
+
+> Ejecutar comandos desde la raíz del proyecto en PowerShell.
+
+### Prerrequisitos
+
+- Java 17+
+- Docker + Docker Compose
+- Git
+
+### 1) Variables de entorno
+
+Usar `.env.example` como base para la configuración local de base de datos y variables de soporte.
+
+### 2) Levantar dependencias locales (PostgreSQL + Redis)
+
+```powershell
+docker compose -f deployment/docker-compose.yml up -d
+```
+
+### 3) Ejecutar la API
+
+```powershell
+.\gradlew :app-service:bootRun
+```
+
+La API queda disponible en:
+
+- `http://localhost:8080`
+
+### 4) Probar casos de uso
+
+Ejecutar las colecciones del archivo `api-casos-uso.http` desde IntelliJ HTTP Client o importar sus requests en tu herramienta preferida.
+
+### 5) Apagar infraestructura local
+
+```powershell
+docker compose -f deployment/docker-compose.yml down
+```
+
+## 7. Estrategia de pruebas
+
+Se implementó una estrategia QA automatizada por módulo y por nivel:
 
 - Unitarias (model, usecase, entry-point y adapter) con JUnit5, Mockito y StepVerifier.
-- Integración real con base de datos PostgreSQL usando Testcontainers.
-- E2E del API reactivo con WebTestClient.
-- Aceptación con Karate en deployment/acceptanceTest (generado con gat).
+- Integración con PostgreSQL usando Testcontainers.
+- E2E API reactiva con WebTestClient.
+- Aceptación con Karate en `deployment/acceptanceTest`.
 
-## Ejecutar pruebas
+### Ejecución de pruebas
 
-> Ejecuta los comandos desde la raíz del proyecto (`backend-accenture-reactive`) en PowerShell.
-
-### Ejecutar todo (recomendado)
+#### Ejecutar todo (recomendado)
 
 ```powershell
 .\scripts\smoke-acceptance.ps1
 ```
 
-Este comando:
-- levanta la base de datos de pruebas,
-- inicia la API,
-- ejecuta acceptance tests,
-- y apaga el entorno al finalizar.
-
-### Ejecutar pruebas rápidas (mock)
+#### Ejecutar pruebas rápidas
 
 ```powershell
 .\gradlew :model:test :usecase:test :reactive-web:test :r2dbc-postgresql:test
 ```
 
-### Ejecutar integración real con PostgreSQL (Testcontainers)
+#### Integración real con PostgreSQL
 
 ```powershell
 .\gradlew :app-service:test --tests "*FranquiciaApiIntegrationTest"
 ```
 
-### Ejecutar suite principal completa
+#### Suite completa
 
 ```powershell
 .\gradlew test
 ```
 
-### Ejecutar aceptación (Karate)
-
-1. Levantar API + DB localmente o por Docker.
-2. Ejecutar el subproyecto:
+#### Aceptación (Karate)
 
 ```powershell
 Set-Location .\deployment\acceptanceTest
 .\gradlew clean test "-Dkarate.options=--tags @acceptanceTest" "-DbaseUrl=http://localhost:8080"
 ```
 
-### Entorno de pruebas real por Docker
+## 8. Docker
+
+### Construir imagen
 
 ```powershell
-docker compose --env-file .env.test -f deployment/docker-compose.test.yml up -d
+docker build -f deployment/Dockerfile -t backend-accenture-reactive .
 ```
 
-Para apagar:
+### Ejecutar contenedores de soporte
 
 ```powershell
-docker compose --env-file .env.test -f deployment/docker-compose.test.yml down
+docker compose -f deployment/docker-compose.yml up -d
 ```
 
-Variables disponibles en .env.test para estandarizar ejecución local/CI.
+## 9. Infraestructura cloud (Terraform + GitOps)
+
+La solución incluye aprovisionamiento de infraestructura AWS con enfoque DevSecOps:
+
+- Estado remoto Terraform (`S3 + KMS + DynamoDB Lock`)
+- VPC por capas (subred pública para ALB, privadas para app/data)
+- ECS Fargate para la API
+- RDS PostgreSQL y Redis en red privada
+- OIDC desde GitHub Actions para despliegue seguro sin llaves estáticas
+
+### Flujo recomendado
+
+1. `terraform/bootstrap`: crear backend remoto de estado.
+2. `terraform/`: aplicar infraestructura principal.
+3. Pipeline GitOps: `fmt`, `validate`, `tfsec`, `plan`, `apply` con aprobación en ambiente protegido.
+
+## 10. Flujo de trabajo Git y entrega
+
+La solución está preparada para evaluación en repositorio público, con historial de cambios y documentación de ejecución local. Se recomienda mantener estrategia de ramas por feature y PRs con validación automática.

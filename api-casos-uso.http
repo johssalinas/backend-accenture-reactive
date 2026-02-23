@@ -1,0 +1,373 @@
+### Backend Accenture Reactive - Casos de uso (Franquicias + Sucursales)
+### IntelliJ IDEA HTTP Client
+
+@host = http://localhost:8080
+
+########################################
+### FRANQUICIAS
+########################################
+
+### 1) Crear franquicia (201)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+X-Client-Id: cliente-123
+Idempotency-Key: crear-franquicia-001
+
+{
+  "name": "Franquicia Centro"
+}
+> {%
+  client.global.set("franquiciaId", response.body.id);
+%}
+
+### 2) Idempotencia replay franquicia (201, mismo id)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+X-Client-Id: cliente-123
+Idempotency-Key: crear-franquicia-001
+
+{
+  "name": "Franquicia Centro"
+}
+
+### 3) Idempotencia conflicto franquicia (409 BUS4091)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+X-Client-Id: cliente-123
+Idempotency-Key: crear-franquicia-001
+
+{
+  "name": "Franquicia Distinta"
+}
+
+### 4) Crear franquicia sin nombre (400 BUS4002)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+X-Client-Id: cliente-123
+Idempotency-Key: crear-franquicia-002
+
+{
+  "name": "   "
+}
+
+### 5) Crear franquicia body vacío (400 BUS4003)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+X-Client-Id: cliente-123
+Idempotency-Key: crear-franquicia-003
+
+{}
+
+### 6) Sin X-Client-Id con Idempotency-Key (400 BUS4005)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+Idempotency-Key: crear-franquicia-004
+
+{
+  "name": "Franquicia Sin Cliente"
+}
+
+### 7) Listar franquicias (200)
+GET {{host}}/api/franquicias
+
+### 8) Buscar franquicia por id (200)
+GET {{host}}/api/franquicias/{{franquiciaId}}
+
+### 9) Buscar franquicia por id inválido (400 BUS4001)
+GET {{host}}/api/franquicias/id-invalido
+
+### 10) Actualizar nombre franquicia (200)
+PATCH {{host}}/api/franquicias/{{franquiciaId}}
+Content-Type: application/json
+
+{
+  "name": "Franquicia Actualizada"
+}
+
+### 11) Eliminar franquicia (204)
+DELETE {{host}}/api/franquicias/{{franquiciaId}}
+
+### 12) Buscar franquicia eliminada/no existente (404 BUS4040)
+GET {{host}}/api/franquicias/{{franquiciaId}}
+
+########################################
+### SUCURSALES
+########################################
+
+### 13) Crear base franquicia para sucursales (201)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+X-Client-Id: cliente-sucursal-123
+Idempotency-Key: crear-franquicia-base-sucursal-001
+
+{
+  "name": "Franquicia Base Sucursales"
+}
+> {%
+  client.global.set("franquiciaBaseId", response.body.id);
+%}
+
+### 14) Primera vez: crea sucursal (201)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-sucursal-123
+Idempotency-Key: crear-sucursal-001
+
+{
+  "name": "Sucursal Norte",
+  "franquiciaId": "{{franquiciaBaseId}}"
+}
+> {%
+  client.global.set("sucursalId", response.body.id);
+%}
+
+### 15) Idempotencia replay sucursal (201, mismo id)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-sucursal-123
+Idempotency-Key: crear-sucursal-001
+
+{
+  "name": "Sucursal Norte",
+  "franquiciaId": "{{franquiciaBaseId}}"
+}
+
+### 16) Idempotencia conflicto sucursal (409 BUS4091)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-sucursal-123
+Idempotency-Key: crear-sucursal-001
+
+{
+  "name": "Sucursal Cambiada",
+  "franquiciaId": "{{franquiciaBaseId}}"
+}
+
+### 17) Crear sucursal con franquicia inexistente (404 BUS4040)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-sucursal-123
+Idempotency-Key: crear-sucursal-002
+
+{
+  "name": "Sucursal Huerfana",
+  "franquiciaId": "11111111-1111-1111-1111-111111111111"
+}
+
+### 18) Crear sucursal sin franquiciaId (400 BUS4004)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-sucursal-123
+Idempotency-Key: crear-sucursal-003
+
+{
+  "name": "Sucursal Sin Franquicia"
+}
+
+### 19) Crear sucursal sin name (400 BUS4002)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-sucursal-123
+Idempotency-Key: crear-sucursal-004
+
+{
+  "name": "   ",
+  "franquiciaId": "{{franquiciaBaseId}}"
+}
+
+### 20) Listar sucursales (200)
+GET {{host}}/api/sucursales
+
+### 21) Buscar sucursal por id (200)
+GET {{host}}/api/sucursales/{{sucursalId}}
+
+### 22) Buscar sucursal por id inválido (400 BUS4001)
+GET {{host}}/api/sucursales/id-invalido
+
+### 23) Actualizar nombre sucursal (200)
+PATCH {{host}}/api/sucursales/{{sucursalId}}
+Content-Type: application/json
+
+{
+  "name": "Sucursal Actualizada"
+}
+
+### 24) Eliminar sucursal (204)
+DELETE {{host}}/api/sucursales/{{sucursalId}}
+
+### 25) Buscar sucursal eliminada/no existente (404 BUS4040)
+GET {{host}}/api/sucursales/{{sucursalId}}
+
+### 26) Limpieza opcional: eliminar franquicia base (204)
+DELETE {{host}}/api/franquicias/{{franquiciaBaseId}}
+
+########################################
+### PRODUCTOS
+########################################
+
+### 27) Crear base franquicia para productos (201)
+POST {{host}}/api/franquicias
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-franquicia-base-producto-{{$uuid}}
+
+{
+  "name": "Franquicia Base Productos"
+}
+> {%
+  client.global.set("franquiciaProductoId", response.body.id);
+%}
+
+### 28) Crear sucursal A para productos (201)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-sucursal-producto-a-001
+
+{
+  "name": "Sucursal Producto Norte",
+  "franquiciaId": "{{franquiciaProductoId}}"
+}
+> {%
+  client.global.set("sucursalProductoAId", response.body.id);
+%}
+
+### 29) Crear sucursal B para productos (201)
+POST {{host}}/api/sucursales
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-sucursal-producto-b-001
+
+{
+  "name": "Sucursal Producto Sur",
+  "franquiciaId": "{{franquiciaProductoId}}"
+}
+> {%
+  client.global.set("sucursalProductoBId", response.body.id);
+%}
+
+### 30) Crear producto (201)
+POST {{host}}/api/productos
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-producto-001
+
+{
+  "name": "Producto Gaseosa",
+  "sucursales": [
+    {
+      "sucursalId": "{{sucursalProductoAId}}",
+      "stock": 20
+    },
+    {
+      "sucursalId": "{{sucursalProductoBId}}",
+      "stock": 35
+    }
+  ]
+}
+> {%
+  client.global.set("productoId", response.body.id);
+%}
+
+### 31) Idempotencia replay producto (201, mismo id)
+POST {{host}}/api/productos
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-producto-001
+
+{
+  "name": "Producto Gaseosa",
+  "sucursales": [
+    {
+      "sucursalId": "{{sucursalProductoAId}}",
+      "stock": 20
+    },
+    {
+      "sucursalId": "{{sucursalProductoBId}}",
+      "stock": 35
+    }
+  ]
+}
+
+### 32) Idempotencia conflicto producto (409 BUS4091)
+POST {{host}}/api/productos
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-producto-001
+
+{
+  "name": "Producto Cambiado",
+  "sucursales": [
+    {
+      "sucursalId": "{{sucursalProductoAId}}",
+      "stock": 22
+    }
+  ]
+}
+
+### 33) Crear producto con stock inválido (400 BUS4007)
+POST {{host}}/api/productos
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-producto-002
+
+{
+  "name": "Producto Stock Invalido",
+  "sucursales": [
+    {
+      "sucursalId": "{{sucursalProductoAId}}",
+      "stock": -1
+    }
+  ]
+}
+
+### 34) Crear producto con sucursal inexistente (404 BUS4040)
+POST {{host}}/api/productos
+Content-Type: application/json
+X-Client-Id: cliente-producto-123
+Idempotency-Key: crear-producto-003
+
+{
+  "name": "Producto Huerfano",
+  "sucursales": [
+    {
+      "sucursalId": "22222222-2222-2222-2222-222222222222",
+      "stock": 5
+    }
+  ]
+}
+
+### 35) Listar productos (200)
+GET {{host}}/api/productos
+
+### 36) Buscar producto por id (200)
+GET {{host}}/api/productos/{{productoId}}
+
+### 37) Buscar producto por id inválido (400 BUS4001)
+GET {{host}}/api/productos/id-invalido
+
+### 38) Actualizar nombre producto (200)
+PATCH {{host}}/api/productos/{{productoId}}
+Content-Type: application/json
+
+{
+  "name": "Producto Gaseosa Zero"
+}
+
+### 39) Consultar producto con mayor stock por sucursal para franquicia (200)
+GET {{host}}/api/franquicias/{{franquiciaProductoId}}/productos/max-stock-por-sucursal
+
+### 40) Eliminar producto (204)
+DELETE {{host}}/api/productos/{{productoId}}
+
+### 41) Buscar producto eliminado/no existente (404 BUS4040)
+GET {{host}}/api/productos/{{productoId}}
+
+### 42) Limpieza opcional: eliminar sucursales y franquicia base de productos (204)
+DELETE {{host}}/api/sucursales/{{sucursalProductoAId}}
+
+### 43) Limpieza opcional: eliminar sucursal B de productos (204)
+DELETE {{host}}/api/sucursales/{{sucursalProductoBId}}
+
+### 44) Limpieza opcional: eliminar franquicia base de productos (204)
+DELETE {{host}}/api/franquicias/{{franquiciaProductoId}}
