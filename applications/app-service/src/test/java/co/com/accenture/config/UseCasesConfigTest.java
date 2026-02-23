@@ -1,6 +1,8 @@
 package co.com.accenture.config;
 
 import co.com.accenture.model.franquicia.gateways.FranquiciaRepository;
+import co.com.accenture.model.franquicia.gateways.FranquiciaCacheRepository;
+import co.com.accenture.model.idempotency.gateways.IdempotencyRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +28,16 @@ class UseCasesConfigTest {
         @Bean
         FranquiciaRepository franquiciaRepository() {
             return mock(FranquiciaRepository.class);
+        }
+
+        @Bean
+        FranquiciaCacheRepository franquiciaCacheRepository() {
+            return mock(FranquiciaCacheRepository.class);
+        }
+
+        @Bean
+        IdempotencyRepository idempotencyRepository() {
+            return mock(IdempotencyRepository.class);
         }
     }
 }
