@@ -1,13 +1,14 @@
-package co.com.accenture.usecase.franquicia;
+package co.com.accenture.usecase.sucursal;
 
 import co.com.accenture.model.exception.message.BusinessErrorMessage;
-import co.com.accenture.model.franquicia.Franquicia;
-import co.com.accenture.model.franquicia.gateways.FranquiciaCacheRepository;
 import co.com.accenture.model.franquicia.gateways.FranquiciaRepository;
 import co.com.accenture.model.idempotency.gateways.IdempotencyRepository;
+import co.com.accenture.model.sucursal.Sucursal;
+import co.com.accenture.model.sucursal.gateways.SucursalCacheRepository;
+import co.com.accenture.model.sucursal.gateways.SucursalRepository;
 import co.com.accenture.model.validation.ReactiveValidationUtils;
-import co.com.accenture.usecase.franquicia.helper.FranquiciaIdempotencyCodec;
 import co.com.accenture.usecase.idempotency.IdempotencyFlowHelper;
+import co.com.accenture.usecase.sucursal.helper.SucursalIdempotencyCodec;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,32 +16,42 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class FranquiciaUseCase {
+public class SucursalUseCase {
 
-    private final FranquiciaRepository repository;
-    private final FranquiciaCacheRepository cacheRepository;
+    private final SucursalRepository repository;
+    private final SucursalCacheRepository cacheRepository;
+    private final FranquiciaRepository franquiciaRepository;
     private final IdempotencyRepository idempotencyRepository;
 
-    public Mono<Franquicia> save(String clientId, String idempotencyKey, Franquicia franquicia) {
+    public Mono<Sucursal> save(String clientId, String idempotencyKey, Sucursal sucursal) {
         return IdempotencyFlowHelper.execute(
                 idempotencyRepository,
                 clientId,
                 idempotencyKey,
-                franquicia,
+                sucursal,
                 () -> ReactiveValidationUtils
-                        .requireNonNull(franquicia, BusinessErrorMessage.INVALID_REQUEST_BODY)
+                        .requireNonNull(sucursal, BusinessErrorMessage.INVALID_REQUEST_BODY)
                         .flatMap(request -> ReactiveValidationUtils
                                 .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_RESOURCE_NAME)
-                                .map(validName -> request.toBuilder().name(validName).build()))
+                                .flatMap(validName -> ReactiveValidationUtils
+                                        .requireNonNull(request.getFranquiciaId(),
+                                                BusinessErrorMessage.INVALID_PARENT_RESOURCE_ID)
+                                        .flatMap(validFranquiciaId -> franquiciaRepository.findById(validFranquiciaId)
+                                                .switchIfEmpty(ReactiveValidationUtils
+                                                        .businessError(BusinessErrorMessage.RESOURCE_NOT_FOUND))
+                                                .thenReturn(request.toBuilder()
+                                                        .name(validName)
+                                                        .franquiciaId(validFranquiciaId)
+                                                        .build()))))
                         .map(validRequest -> validRequest.toBuilder().id(UUID.randomUUID()).build())
                         .flatMap(repository::save)
                         .flatMap(saved -> cacheRepository.putById(saved)
                                 .then(cacheRepository.evictAll())
                                 .thenReturn(saved)),
-                FranquiciaIdempotencyCodec.INSTANCE);
+                SucursalIdempotencyCodec.INSTANCE);
     }
 
-    public Mono<Franquicia> findById(UUID id) {
+    public Mono<Sucursal> findById(UUID id) {
         return ReactiveValidationUtils.requireNonNull(id, BusinessErrorMessage.INVALID_RESOURCE_ID)
                 .flatMap(validId -> cacheRepository.getById(validId)
                         .switchIfEmpty(Mono.defer(() -> repository.findById(validId)
@@ -48,7 +59,7 @@ public class FranquiciaUseCase {
                 .switchIfEmpty(ReactiveValidationUtils.businessError(BusinessErrorMessage.RESOURCE_NOT_FOUND));
     }
 
-    public Flux<Franquicia> findAll() {
+    public Flux<Sucursal> findAll() {
         return cacheRepository.getAll()
                 .switchIfEmpty(Flux.defer(() -> repository.findAll()
                         .collectList()
@@ -61,12 +72,12 @@ public class FranquiciaUseCase {
         return ReactiveValidationUtils.requireNonNull(id, BusinessErrorMessage.INVALID_RESOURCE_ID)
                 .flatMap(repository::findById)
                 .switchIfEmpty(ReactiveValidationUtils.businessError(BusinessErrorMessage.RESOURCE_NOT_FOUND))
-                .flatMap(franquicia -> repository.deleteById(id)
+                .flatMap(sucursal -> repository.deleteById(id)
                         .then(cacheRepository.evictById(id))
                         .then(cacheRepository.evictAll()));
     }
 
-    public Mono<Franquicia> updateName(UUID id, String newName) {
+    public Mono<Sucursal> updateName(UUID id, String newName) {
         return ReactiveValidationUtils.requireNonNull(id, BusinessErrorMessage.INVALID_RESOURCE_ID)
                 .flatMap(validId -> ReactiveValidationUtils
                         .requireNonBlank(newName, BusinessErrorMessage.INVALID_RESOURCE_NAME)

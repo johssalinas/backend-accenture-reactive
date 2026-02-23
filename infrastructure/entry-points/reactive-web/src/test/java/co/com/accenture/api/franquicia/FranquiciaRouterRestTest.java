@@ -65,7 +65,7 @@ class FranquiciaRouterRestTest {
                                 .exchange()
                                 .expectStatus().isBadRequest()
                                 .expectBody()
-                                .jsonPath("$.code").isEqualTo("FRA4001");
+                                .jsonPath("$.code").isEqualTo("BUS4001");
         }
 
         @Test
@@ -73,7 +73,7 @@ class FranquiciaRouterRestTest {
                 UUID id = UUID.randomUUID();
                 when(useCase.updateName(eq(id), eq("Nueva")))
                                 .thenReturn(Mono.error(
-                                                new BusinessException(BusinessErrorMessage.FRANQUICIA_NOT_FOUND)));
+                                                new BusinessException(BusinessErrorMessage.RESOURCE_NOT_FOUND)));
 
                 webTestClient.patch()
                                 .uri("/api/franquicias/{id}", id)
@@ -86,7 +86,7 @@ class FranquiciaRouterRestTest {
                                 .exchange()
                                 .expectStatus().isNotFound()
                                 .expectBody()
-                                .jsonPath("$.code").isEqualTo("FRA404");
+                                .jsonPath("$.code").isEqualTo("BUS4040");
         }
 
         @Test

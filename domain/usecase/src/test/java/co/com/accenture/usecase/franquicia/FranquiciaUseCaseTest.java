@@ -85,7 +85,7 @@ class FranquiciaUseCaseTest {
                 StepVerifier.create(useCase.save("cliente-1", "idem-1", request))
                                 .expectErrorSatisfies(error -> {
                                         BusinessException businessException = (BusinessException) error;
-                                        assertEquals(BusinessErrorMessage.INVALID_FRANQUICIA_NAME,
+                                        assertEquals(BusinessErrorMessage.INVALID_RESOURCE_NAME,
                                                         businessException.getBusinessErrorMessage());
                                 })
                                 .verify();
@@ -99,7 +99,7 @@ class FranquiciaUseCaseTest {
                 StepVerifier.create(useCase.findById(id))
                                 .expectErrorSatisfies(error -> {
                                         BusinessException businessException = (BusinessException) error;
-                                        assertEquals(BusinessErrorMessage.FRANQUICIA_NOT_FOUND,
+                                        assertEquals(BusinessErrorMessage.RESOURCE_NOT_FOUND,
                                                         businessException.getBusinessErrorMessage());
                                 })
                                 .verify();
@@ -152,7 +152,7 @@ class FranquiciaUseCaseTest {
                 StepVerifier.create(useCase.updateName(id, "Franquicia Sur"))
                                 .expectErrorSatisfies(error -> {
                                         BusinessException businessException = (BusinessException) error;
-                                        assertEquals(BusinessErrorMessage.FRANQUICIA_NOT_FOUND,
+                                        assertEquals(BusinessErrorMessage.RESOURCE_NOT_FOUND,
                                                         businessException.getBusinessErrorMessage());
                                 })
                                 .verify();

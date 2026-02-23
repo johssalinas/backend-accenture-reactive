@@ -43,5 +43,5 @@ adapters:
     key-prefix: ${REDIS_KEY_PREFIX:accenture}
     idempotency-in-progress-ttl: ${REDIS_IDEMPOTENCY_IN_PROGRESS_TTL:30s}
     idempotency-completed-ttl: ${REDIS_IDEMPOTENCY_COMPLETED_TTL:24h}
-    franquicia-by-id-ttl: ${REDIS_FRANQUICIA_BY_ID_TTL:10m}
-    franquicia-all-ttl: ${REDIS_FRANQUICIA_ALL_TTL:2m}
+    cache-by-id-ttl: ${REDIS_CACHE_BY_ID_TTL:10m}
+    cache-all-ttl: ${REDIS_CACHE_ALL_TTL:2m}
