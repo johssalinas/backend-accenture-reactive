@@ -98,7 +98,7 @@ class FranquiciaApiIntegrationTest {
                                 .exchange()
                                 .expectStatus().isNotFound()
                                 .expectBody()
-                                .jsonPath("$.code").isEqualTo("FRA404");
+                                .jsonPath("$.code").isEqualTo("BUS4040");
         }
 
         @Test
@@ -112,7 +112,7 @@ class FranquiciaApiIntegrationTest {
                                 .exchange()
                                 .expectStatus().isBadRequest()
                                 .expectBody()
-                                .jsonPath("$.code").isEqualTo("FRA4002");
+                                .jsonPath("$.code").isEqualTo("BUS4002");
         }
 
         @Test
@@ -165,7 +165,7 @@ class FranquiciaApiIntegrationTest {
                                 .exchange()
                                 .expectStatus().is4xxClientError()
                                 .expectBody()
-                                .jsonPath("$.code").isEqualTo("FRA4091");
+                                .jsonPath("$.code").isEqualTo("BUS4091");
 
                 org.junit.jupiter.api.Assertions.assertEquals(firstId, secondId);
         }

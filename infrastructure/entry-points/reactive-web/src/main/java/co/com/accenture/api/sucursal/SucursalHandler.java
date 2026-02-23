@@ -1,11 +1,11 @@
-package co.com.accenture.api.franquicia;
+package co.com.accenture.api.sucursal;
 
 import co.com.accenture.api.config.ApiErrorResponseMapper;
 import co.com.accenture.model.exception.BusinessException;
 import co.com.accenture.model.exception.TechnicalException;
 import co.com.accenture.model.exception.message.BusinessErrorMessage;
-import co.com.accenture.model.franquicia.Franquicia;
-import co.com.accenture.usecase.franquicia.FranquiciaUseCase;
+import co.com.accenture.model.sucursal.Sucursal;
+import co.com.accenture.usecase.sucursal.SucursalUseCase;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
@@ -18,22 +18,22 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class FranquiciaHandler {
+public class SucursalHandler {
     private static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
     private static final String CLIENT_ID_HEADER = "X-Client-Id";
 
-    private final FranquiciaUseCase useCase;
+    private final SucursalUseCase useCase;
 
     public Mono<ServerResponse> save(@NonNull ServerRequest request) {
-        return request.bodyToMono(Franquicia.class)
+        return request.bodyToMono(Sucursal.class)
                 .switchIfEmpty(getBusinessError(BusinessErrorMessage.INVALID_REQUEST_BODY))
-                .flatMap(franquicia -> useCase.save(
+                .flatMap(sucursal -> useCase.save(
                         request.headers().firstHeader(CLIENT_ID_HEADER),
                         request.headers().firstHeader(IDEMPOTENCY_KEY_HEADER),
-                        franquicia))
-                .flatMap(franquiciaCreada -> ServerResponse
-                        .created(URI.create("/api/franquicias/" + franquiciaCreada.getId()))
-                        .bodyValue(franquiciaCreada))
+                        sucursal))
+                .flatMap(sucursalCreada -> ServerResponse
+                        .created(URI.create("/api/sucursales/" + sucursalCreada.getId()))
+                        .bodyValue(sucursalCreada))
                 .onErrorResume(BusinessException.class, ApiErrorResponseMapper::mapBusiness)
                 .onErrorResume(TechnicalException.class, ApiErrorResponseMapper::mapTechnical)
                 .onErrorResume(error -> ApiErrorResponseMapper.mapUnknown());
@@ -42,14 +42,14 @@ public class FranquiciaHandler {
     public Mono<ServerResponse> findById(@NonNull ServerRequest request) {
         return getPathId(request)
                 .flatMap(useCase::findById)
-                .flatMap(franquiciaEncontrada -> ServerResponse.ok().bodyValue(franquiciaEncontrada))
+                .flatMap(sucursalEncontrada -> ServerResponse.ok().bodyValue(sucursalEncontrada))
                 .onErrorResume(BusinessException.class, ApiErrorResponseMapper::mapBusiness)
                 .onErrorResume(TechnicalException.class, ApiErrorResponseMapper::mapTechnical)
                 .onErrorResume(error -> ApiErrorResponseMapper.mapUnknown());
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request) {
-        return ServerResponse.ok().body(useCase.findAll(), Franquicia.class)
+        return ServerResponse.ok().body(useCase.findAll(), Sucursal.class)
                 .onErrorResume(TechnicalException.class, ApiErrorResponseMapper::mapTechnical)
                 .onErrorResume(error -> ApiErrorResponseMapper.mapUnknown());
     }
@@ -65,7 +65,7 @@ public class FranquiciaHandler {
 
     public Mono<ServerResponse> updateName(@NonNull ServerRequest request) {
         return getPathId(request)
-                .flatMap(id -> request.bodyToMono(Franquicia.class)
+                .flatMap(id -> request.bodyToMono(Sucursal.class)
                         .switchIfEmpty(getBusinessError(BusinessErrorMessage.INVALID_REQUEST_BODY))
                         .flatMap(body -> useCase.updateName(id, body.getName())))
                 .flatMap(updated -> ServerResponse.ok().bodyValue(updated))

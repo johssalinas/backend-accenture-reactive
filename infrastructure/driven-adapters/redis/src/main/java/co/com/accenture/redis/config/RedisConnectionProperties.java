@@ -16,6 +16,6 @@ public record RedisConnectionProperties(
         String keyPrefix,
         Duration idempotencyInProgressTtl,
         Duration idempotencyCompletedTtl,
-        Duration franquiciaByIdTtl,
-        Duration franquiciaAllTtl) {
+        Duration cacheByIdTtl,
+        Duration cacheAllTtl) {
 }

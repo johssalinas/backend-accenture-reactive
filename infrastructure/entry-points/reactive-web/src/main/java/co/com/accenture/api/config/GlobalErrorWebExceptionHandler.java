@@ -52,10 +52,11 @@ public class GlobalErrorWebExceptionHandler implements WebExceptionHandler {
         if (exception instanceof BusinessException businessException) {
             BusinessErrorMessage businessError = businessException.getBusinessErrorMessage();
             HttpStatus status = switch (businessError) {
-                case FRANQUICIA_NOT_FOUND -> HttpStatus.NOT_FOUND;
-                case INVALID_FRANQUICIA_ID,
-                        INVALID_FRANQUICIA_NAME,
-                        INVALID_FRANQUICIA_REQUEST,
+                case RESOURCE_NOT_FOUND -> HttpStatus.NOT_FOUND;
+                case INVALID_RESOURCE_ID,
+                        INVALID_RESOURCE_NAME,
+                        INVALID_REQUEST_BODY,
+                        INVALID_PARENT_RESOURCE_ID,
                         INVALID_CLIENT_ID,
                         INVALID_IDEMPOTENCY_KEY ->
                     HttpStatus.BAD_REQUEST;

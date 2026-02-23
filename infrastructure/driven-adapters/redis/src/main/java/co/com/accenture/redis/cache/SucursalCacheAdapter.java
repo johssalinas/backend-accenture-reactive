@@ -1,7 +1,7 @@
 package co.com.accenture.redis.cache;
 
-import co.com.accenture.model.franquicia.Franquicia;
-import co.com.accenture.model.franquicia.gateways.FranquiciaCacheRepository;
+import co.com.accenture.model.sucursal.Sucursal;
+import co.com.accenture.model.sucursal.gateways.SucursalCacheRepository;
 import co.com.accenture.redis.config.RedisConnectionProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,35 +14,35 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public class FranquiciaCacheAdapter extends GenericRedisCacheAdapter<Franquicia> implements FranquiciaCacheRepository {
+public class SucursalCacheAdapter extends GenericRedisCacheAdapter<Sucursal> implements SucursalCacheRepository {
 
-    private static final TypeReference<List<Franquicia>> FRANQUICIA_LIST_TYPE = new TypeReference<>() {
+    private static final TypeReference<List<Sucursal>> SUCURSAL_LIST_TYPE = new TypeReference<>() {
     };
 
-    public FranquiciaCacheAdapter(ReactiveStringRedisTemplate redisTemplate,
+    public SucursalCacheAdapter(ReactiveStringRedisTemplate redisTemplate,
             ObjectMapper objectMapper,
             RedisConnectionProperties properties) {
-        super(redisTemplate, objectMapper, properties, "franquicia", Franquicia.class, FRANQUICIA_LIST_TYPE);
+        super(redisTemplate, objectMapper, properties, "sucursal", Sucursal.class, SUCURSAL_LIST_TYPE);
     }
 
     @Override
-    public Mono<Franquicia> getById(UUID id) {
+    public Mono<Sucursal> getById(UUID id) {
         return super.getByIdResource(id);
     }
 
     @Override
-    public Mono<Void> putById(Franquicia franquicia) {
-        return franquicia == null ? Mono.empty() : super.putByIdResource(franquicia.getId(), franquicia);
+    public Mono<Void> putById(Sucursal sucursal) {
+        return sucursal == null ? Mono.empty() : super.putByIdResource(sucursal.getId(), sucursal);
     }
 
     @Override
-    public Flux<Franquicia> getAll() {
+    public Flux<Sucursal> getAll() {
         return super.getAllResources();
     }
 
     @Override
-    public Mono<Void> putAll(List<Franquicia> franquicias) {
-        return super.putAllResources(franquicias);
+    public Mono<Void> putAll(List<Sucursal> sucursales) {
+        return super.putAllResources(sucursales);
     }
 
     @Override
