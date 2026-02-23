@@ -32,3 +32,16 @@ adapters:
     schema: ${DB_SCHEMA:public}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    database: ${REDIS_DB:0}
+    password: ${REDIS_PASSWORD:}
+    ssl: ${REDIS_SSL:false}
+    connect-timeout: ${REDIS_CONNECT_TIMEOUT:3s}
+    command-timeout: ${REDIS_COMMAND_TIMEOUT:3s}
+    key-prefix: ${REDIS_KEY_PREFIX:accenture}
+    idempotency-in-progress-ttl: ${REDIS_IDEMPOTENCY_IN_PROGRESS_TTL:30s}
+    idempotency-completed-ttl: ${REDIS_IDEMPOTENCY_COMPLETED_TTL:24h}
+    franquicia-by-id-ttl: ${REDIS_FRANQUICIA_BY_ID_TTL:10m}
+    franquicia-all-ttl: ${REDIS_FRANQUICIA_ALL_TTL:2m}
