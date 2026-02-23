@@ -12,6 +12,6 @@ import java.util.UUID;
 
 public interface FranquiciaDataRepository extends ReactiveCrudRepository<FranquiciaEntity, UUID>, ReactiveQueryByExampleExecutor<FranquiciaEntity> {
 	@Modifying
-	@Query("UPDATE franquicia SET name = :name, version = version + 1 WHERE id = CAST(:id AS UUID)")
+	@Query("UPDATE franquicia SET name = :name WHERE id = CAST(:id AS UUID)")
 	Mono<Integer> updateNameById(@Param("id") UUID id, @Param("name") String name);
 }

@@ -13,6 +13,7 @@ public enum BusinessErrorMessage {
     INVALID_PARENT_RESOURCE_ID("BUS4004", "El identificador del recurso padre es inválido"),
     INVALID_CLIENT_ID("BUS4005", "El encabezado X-Client-Id es obligatorio cuando se usa Idempotency-Key"),
     INVALID_IDEMPOTENCY_KEY("BUS4006", "El encabezado Idempotency-Key es inválido"),
+    INVALID_RESOURCE_STOCK("BUS4007", "El stock del producto debe ser mayor o igual a cero"),
     IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST("BUS4091",
             "La llave de idempotencia ya fue usada con una solicitud diferente"),
     IDEMPOTENCY_REQUEST_IN_PROGRESS("BUS4092", "Ya existe una solicitud en curso con la misma llave de idempotencia");

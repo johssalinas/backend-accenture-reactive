@@ -43,7 +43,6 @@ public class SucursalUseCase {
                                                         .name(validName)
                                                         .franquiciaId(validFranquiciaId)
                                                         .build()))))
-                        .map(validRequest -> validRequest.toBuilder().id(UUID.randomUUID()).build())
                         .flatMap(repository::save)
                         .flatMap(saved -> cacheRepository.putById(saved)
                                 .then(cacheRepository.evictAll())

@@ -58,7 +58,8 @@ public class GlobalErrorWebExceptionHandler implements WebExceptionHandler {
                         INVALID_REQUEST_BODY,
                         INVALID_PARENT_RESOURCE_ID,
                         INVALID_CLIENT_ID,
-                        INVALID_IDEMPOTENCY_KEY ->
+                        INVALID_IDEMPOTENCY_KEY,
+                        INVALID_RESOURCE_STOCK ->
                     HttpStatus.BAD_REQUEST;
                 case IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST,
                         IDEMPOTENCY_REQUEST_IN_PROGRESS ->
