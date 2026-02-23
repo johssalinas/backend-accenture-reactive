@@ -53,10 +53,13 @@ jobs:
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-          cache: 'maven'
+          cache: 'gradle'
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x ./gradlew
       
-      - name: Build with Maven
-        run: mvn clean compile -B
+      - name: Build with Gradle
+        run: ./gradlew clean classes --no-daemon
       
       - name: Run tests
         env:
@@ -65,16 +68,16 @@ jobs:
           DATABASE_PASSWORD: postgres
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-        run: mvn test -B
+        run: ./gradlew test --no-daemon
       
       - name: Package application
-        run: mvn package -DskipTests -Dspotless.check.skip=true -B
+        run: ./gradlew :app-service:bootJar -x test --no-daemon
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: franchise-api-jar
-          path: target/*.jar
+          name: accenture-app-jar
+          path: applications/app-service/build/libs/*.jar
           retention-days: 7
   
   security-scan:
@@ -91,13 +94,20 @@ jobs:
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-          cache: 'maven'
+          cache: 'gradle'
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x ./gradlew
       
-      - name: Run OWASP Dependency Check
-        run: |
-          mvn org.owasp:dependency-check-maven:check \
-            -DfailBuildOnCVSS=7 \
-            -DsuppressionFile=owasp-suppressions.xml || true
+      - name: Run vulnerability scan (Trivy FS)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
   
   docker-build:
     name: Build Docker Image
