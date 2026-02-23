@@ -35,3 +35,7 @@ sonar {
 }
 
 apply from: './main.gradle'
+
+tasks.named('validateStructure') {
+    finalizedBy(':app-service:normalizeArchitectureGeneratedTests')
+}

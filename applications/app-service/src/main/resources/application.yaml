@@ -1,28 +1,34 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-exception: false
+
 spring:
   application:
-    name: "BackendAceentureReactive"
-  devtools:
-    add-properties: false
-  h2:
-    console:
-      enabled: true
-      path: "/h2"
-  profiles:
-    include: null
+    name: "BackendAccentureReactive"
+
+  # Configuración de Migraciones
+  flyway:
+    url: ${JDBC_URL:jdbc:postgresql://localhost:5432/accenture_db}
+    user: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    enabled: true
+    baseline-on-migrate: true
+
 springdoc:
   swagger-ui.path: "/v3/swagger-ui.html"
   api-docs.path: "/v3/api-docs"
-  show-actuator: true
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,prometheus"
-  endpoint:
-    health:
-      probes:
-        enabled: true
+
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080"
+  allowed-origins: ${CORS_ALLOWED:http://localhost:4200,http://localhost:8080}
+
+adapters:
+  r2dbc:
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:accenture_db}
+    schema: ${DB_SCHEMA:public}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
