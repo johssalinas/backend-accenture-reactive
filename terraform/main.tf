@@ -493,25 +493,37 @@ resource "aws_ecs_task_definition" "app" {
           value = "prod"
         },
         {
-          name  = "SPRING_DATASOURCE_URL"
+          name  = "JDBC_URL"
           value = "jdbc:postgresql://${aws_db_instance.postgres.address}:5432/franchise_db"
         },
         {
-          name  = "SPRING_DATA_REDIS_HOST"
+          name  = "DB_HOST"
+          value = aws_db_instance.postgres.address
+        },
+        {
+          name  = "DB_PORT"
+          value = "5432"
+        },
+        {
+          name  = "DB_NAME"
+          value = "franchise_db"
+        },
+        {
+          name  = "REDIS_HOST"
           value = aws_elasticache_cluster.redis.cache_nodes[0].address
         },
         {
-          name  = "SPRING_DATA_REDIS_PORT"
+          name  = "REDIS_PORT"
           value = tostring(aws_elasticache_cluster.redis.cache_nodes[0].port)
         }
       ]
       secrets = [
         {
-          name      = "SPRING_DATASOURCE_USERNAME"
+          name      = "DB_USER"
           valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:username::"
         },
         {
-          name      = "SPRING_DATASOURCE_PASSWORD"
+          name      = "DB_PASSWORD"
           valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::"
         }
       ]
