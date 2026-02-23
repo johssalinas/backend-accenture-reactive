@@ -32,7 +32,6 @@ public class FranquiciaUseCase {
                         .flatMap(request -> ReactiveValidationUtils
                                 .requireNonBlank(request.getName(), BusinessErrorMessage.INVALID_RESOURCE_NAME)
                                 .map(validName -> request.toBuilder().name(validName).build()))
-                        .map(validRequest -> validRequest.toBuilder().id(UUID.randomUUID()).build())
                         .flatMap(repository::save)
                         .flatMap(saved -> cacheRepository.putById(saved)
                                 .then(cacheRepository.evictAll())
