@@ -113,12 +113,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug OIDC claims
+        if: ${{ vars.DEBUG_OIDC == 'true' }}
+        uses: github/actions-oidc-debugger@v1
       
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
           role-session-name: gha-franchise-api-docker
+          audience: sts.amazonaws.com
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Log in to Amazon ECR
@@ -149,6 +154,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug OIDC claims
+        if: ${{ vars.DEBUG_OIDC == 'true' }}
+        uses: github/actions-oidc-debugger@v1
       
       - name: Debug - Check Deploy Variables
         run: |
@@ -163,6 +172,7 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
           role-session-name: gha-franchise-api-deploy
+          audience: sts.amazonaws.com
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Update ECS Service
