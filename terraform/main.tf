@@ -494,7 +494,7 @@ resource "aws_ecs_task_definition" "app" {
         },
         {
           name  = "JDBC_URL"
-          value = "jdbc:postgresql://${aws_db_instance.postgres.address}:5432/franchise_db"
+          value = "jdbc:postgresql://${aws_db_instance.postgres.address}:5432/franchise_db?sslmode=require"
         },
         {
           name  = "DB_HOST"

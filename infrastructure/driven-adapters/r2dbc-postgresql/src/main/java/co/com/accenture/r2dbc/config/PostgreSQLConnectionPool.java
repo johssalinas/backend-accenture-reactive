@@ -2,6 +2,7 @@ package co.com.accenture.r2dbc.config;
 
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
+import io.r2dbc.postgresql.client.SSLMode;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +29,7 @@ public class PostgreSQLConnectionPool {
                                 .password(properties.password());
 
                 if (properties.ssl() == null || properties.ssl()) {
-                        dbBuilder.enableSsl();
+                        dbBuilder.sslMode(SSLMode.REQUIRE);
                 }
 
                 PostgresqlConnectionConfiguration dbConfiguration = dbBuilder.build();
